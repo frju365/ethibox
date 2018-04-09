@@ -18,6 +18,7 @@
       "assert",
       "browser",
       "socket",
+      "Stripe",
   },
   "env": {
       "browser": true,

@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import jwtDecode from 'jwt-decode';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcrypt';
+import stripePackage from 'stripe';
 import { listApplications, installApplication, uninstallApplication, listCharts, editApplication } from './k8sClient';
 import { User } from './models';
 import { isAuthenticate, secret, externalIp } from './utils';
@@ -136,6 +137,43 @@ api.get('/charts', (req, res) => {
     try {
         const charts = listCharts();
         return res.json(charts);
+    } catch ({ message }) {
+        return res.status(500).send({ success: false, message });
+    }
+});
+
+api.post('/subscribe', async (req, res) => {
+    if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
+
+    try {
+        const stripe = stripePackage(process.env.STRIPE_KEY);
+        const token = req.body.token || req.query.token || req.headers['x-access-token'];
+        const { email } = jwtDecode(token);
+        const { stripeToken } = req.body;
+
+        const user = await User.findOne({ where: { email }, raw: true });
+        if (!user) {
+            return res.status(500).send({ success: false, message: 'User not exist' });
+        }
+
+        let stripeCustomerId = user.stripe_customer_id;
+
+        if (!stripeCustomerId) {
+            const customer = await stripe.customers.create({ email });
+            stripeCustomerId = customer.id;
+            User.sync().then(() => User.update({ stripe_customer_id: stripeCustomerId }, { where: { email } }));
+        }
+
+        await stripe.customers.createSource(stripeCustomerId, { source: stripeToken });
+
+        const subscriptions = await stripe.subscriptions.list({ customer: stripeCustomerId });
+
+        if (!subscriptions.data.length) {
+            await stripe.subscriptions.create({ customer: stripeCustomerId, items: [{ plan: 'premium' }] });
+            return res.json({ success: true, message: 'Subscription success' });
+        }
+
+        return res.status(500).send({ success: true, message: 'You are already registered' });
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
     }

@@ -9,6 +9,7 @@ export const User = sequelize.define('user', {
     ip: { type: Sequelize.STRING, validate: { isIP: true } },
     email: { type: Sequelize.STRING, validate: { isEmail: true } },
     password: { type: Sequelize.STRING },
+    stripe_customer_id: { type: Sequelize.STRING },
 });
 
-User.sync();
+User.sync({ alter: true });
