@@ -31,7 +31,6 @@
 
 ## Why ?
 
-- Because internet is centralized and lacks of privacy
 - Because it's not easy to self-hosted
 - Because free software ❤︎
 
@@ -47,59 +46,58 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Requirements
 
-* [Minikube](https://github.com/kubernetes/minikube) - Run Kubernetes locally.
-* [Telepresence](https://github.com/datawire/telepresence/) - Local development against a remote Kubernetes.
+* [Minikube](https://github.com/kubernetes/minikube) - Run Kubernetes locally
+* [Helm](https://github.com/kubernetes/helm/) -  The Kubernetes Package Manager
 * [Node.js](https://github.com/nodejs/node) - Node.js
 
 ### Installation
 
 ```bash
 minikube start --extra-config=apiserver.Authorization.Mode=RBAC
-make install
-make enter
-make dev
+helm install --namespace kube-system --name ethibox ./charts/packages/ethibox-0.1.0.tgz
+npm install
+npm start
 ```
 
 ## How it works
 
 ```
-         ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-         │                      ┌──────────┐                                               │
-         │                  ┌──▶│ Mastodon │◀──┐                                           │
-         │                  │   └──────────┘   │                                           │
-         │                  │                  │                                           │
-      80,443   ┌─────────┐  │   ┌──────────┐   │  ┌────────────────┐    ┌──────────────┐   │
-User ─────────▶│ traefik │─────▶│ Ghost    │◀─────│ Kubernetes API │◀───│ Helm + swift │   │
-         │     └─────────┘  │   └──────────┘   │  └────────────────┘    └──────────────┘   │
-         │          │       │                  │           ▲                   ▲           │
-         │          │       │   ┌──────────┐   │           │                   │           │
-         │          │       └──▶│ ∞        │◀──┘           │                   │           │
-         │          │           └──────────┘               │                   │           │
-         │          │                                      │                   │           │
-         │          │           ┌──────────┐               │      charts       │           │
-         │          └──────────▶│ Ethibox  │───────────────┘───────────────────┘           │
-         │                      └──────────┘                                               │
-         │                                                               Bare metal server │
-         └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+         ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+         │                            ┌──────────┐                     │
+         │                        ┌──▶│ Mastodon │◀──┐                 │
+         │                        │   └──────────┘   │                 │
+         │                        │                  │                 │
+      80,443   ┌───────────────┐  │   ┌──────────┐   │  ┌────────────┐ │
+User ─────────▶│ reverse-proxy │─────▶│ Ghost    │◀─────│ Kubernetes │ │
+         │     └───────────────┘  │   └──────────┘   │  └────────────┘ │
+         │          │             │                  │         ▲       │
+         │          │             │   ┌──────────┐   │         │       │
+         │          │             └──▶│ ∞        │◀──┘         │       │
+         │          │                 └──────────┘             │       │
+         │          │                                          │       │
+         │          │                 ┌──────────┐    charts   │       │
+         │          └────────────────▶│ Ethibox  │─────────────┘       │
+         │                            └──────────┘                     │
+         │                                           Bare metal server │
+         └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
 ## Deployment
 
 ```bash
-helm install --namespace kube-system --name ethibox http://demo.ethibox.fr/charts/ethibox-0.1.0.tgz
+helm install --namespace kube-system --name ethibox https://github.com/ston3o/ethibox/raw/master/charts/packages/ethibox-0.1.0.tgz
 ```
 
 ## Running the tests
 
 ```bash
-make start-selenium
-make test
+npm test
 ```
 
 ## Built With
 
 * [Kubernetes](https://github.com/kubernetes/kubernetes) - Production-Grade Container Scheduling and Management.
-* [helm](https://github.com/kubernetes/helm) - The Kubernetes Package Manager.
+* [Helm](https://github.com/kubernetes/helm) - The Kubernetes Package Manager.
 * [React](https://github.com/facebook/react) - A declarative, efficient, and flexible JavaScript library for building user interfaces.
 * [Redux](https://github.com/reactjs/redux) - Predictable state container for JavaScript apps.
 * [Express](https://github.com/expressjs/express) - Fast, unopinionated, minimalist web framework for node.
@@ -118,13 +116,13 @@ make test
 
 Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## Help support ethibox
+## Help support Ethibox
 
 Support me with a monthly donation and help me continue my activities:
 
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/ston3o/donate)
 
-Buy me a beer (BTC): 112aZxX9Jiya4TM6Le4foxTq9V8U6aVGbG
+Buy me a beer (BTC): [bitcoin:112aZxX9Jiya4TM6Le4foxTq9V8U6aVGbG](112aZxX9Jiya4TM6Le4foxTq9V8U6aVGbG)
 
 ## License
 

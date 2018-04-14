@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 describe('Login Page', () => {
     it('Check title page', () => {
         cy.visit('/');
-        cy.title().should('eq', "Ethibox - Let's decentralize the internet!");
+        cy.title().should('eq', 'Ethibox - Host your websites effortlessly');
     });
 
     it('Sign in', () => {
