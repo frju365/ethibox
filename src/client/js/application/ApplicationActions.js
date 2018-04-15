@@ -1,4 +1,4 @@
-import { checkStatus, isConnect } from '../utils';
+import { checkStatus } from '../utils';
 import { openModal } from '../modal/ModalActions';
 import { openLoader, closeLoader } from '../loader/LoaderActions';
 
@@ -9,14 +9,13 @@ export const listApplicationsSuccess = applications => ({ type: 'LIST_APPLICATIO
 export const listApplications = () => (dispatch) => {
     dispatch(openLoader('Loading applications...'));
 
-    socket.on('listApplications', (apps) => {
-        dispatch(closeLoader());
-        if (localStorage.getItem('lastActionDate') < Date.now() - 5000) {
-            dispatch(listApplicationsSuccess(apps));
-        }
-
-        if (!isConnect()) window.location.replace('/');
-    });
+    fetch('/api/applications/', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'x-access-token': localStorage.getItem('token') },
+    })
+        .then(checkStatus)
+        .then(({ apps }) => dispatch(listApplicationsSuccess(apps)) && dispatch(closeLoader()))
+        .catch(({ message }) => dispatch(openModal({ hasErrored: true, errorMessage: message })) && dispatch(closeLoader()));
 };
 
 export const installApplication = application => async (dispatch) => {

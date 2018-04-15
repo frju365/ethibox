@@ -61,7 +61,7 @@ api.get('/applications', async (req, res) => {
 
     try {
         const apps = await listApplications();
-        return res.json(apps);
+        return res.json({ success: true, message: 'Application listing', apps });
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
     }
