@@ -21,7 +21,7 @@ describe('Login Page', () => {
     it('Logout', () => {
         const token = jwt.sign({ email: 'contact@ethibox.fr' }, 'mysecret', { expiresIn: '1d' });
         cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
-        cy.get('.sidebar a:last-child').click();
+        cy.get('.sidebar a:last-child').click({ force: true });
         cy.get('.sub.header').contains('Host your websites effortlessly');
     });
 
