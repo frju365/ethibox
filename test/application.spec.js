@@ -22,6 +22,7 @@ describe('Applications Page', () => {
         cy.wait('@GetApps');
         cy.get('.dimmer').not('.active');
         cy.get('.cards .card:first-child .header').contains('myapp');
+        cy.get('.cards .card:first-child .meta').contains('Editor');
     });
 
     it('Install application', () => {
@@ -33,6 +34,7 @@ describe('Applications Page', () => {
         cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
         cy.get('.cards .card:first-child .buttons').click();
         cy.get('.cards .card:first-child input').type('myapp{enter}');
+        cy.get('.cards .card:first-child .header').contains('myapp');
     });
 
     it('Uninstall application', () => {
@@ -66,4 +68,8 @@ describe('Applications Page', () => {
         cy.get('.cards .card:first-child .menu .item').click();
         cy.get('.cards .card:first-child input').type('domain.fr{enter}');
     });
+
+    it('Auto refresh', () => [
+        // TODO
+    ]);
 });

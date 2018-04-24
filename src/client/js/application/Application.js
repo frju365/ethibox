@@ -10,7 +10,7 @@ const LOADING = 'loading';
 const ERROR = 'error';
 
 class Application extends React.Component {
-    state = { action: '', domainName: this.props.domain || '', error: false };
+    state = { action: '', domainName: this.props.domainName || '', error: false };
 
     uninstall = () => {
         this.setState({ action: '' });
@@ -22,7 +22,7 @@ class Application extends React.Component {
 
         if (key === 'Enter') {
             if (isFQDN(domainName)) {
-                this.props.editDomainName({ domainName, name: this.props.name, releaseName: this.props.releaseName });
+                this.props.editDomainName({ domainName, releaseName: this.props.releaseName });
                 this.setState({ action: '', error: false, domainName });
             } else {
                 this.setState({ error: true });
@@ -31,7 +31,7 @@ class Application extends React.Component {
     }
 
     removeDomainName = () => {
-        this.props.editDomainName({ domainName: '', name: this.props.name, releaseName: this.props.releaseName });
+        this.props.editDomainName({ domainName: '', releaseName: this.props.releaseName });
         this.setState({ domainName: '' });
     }
 
@@ -119,6 +119,10 @@ class Application extends React.Component {
         );
     }
 }
+
+Application.defaultProps = {
+    category: 'unknow',
+};
 
 const mapStateToProps = state => ({ ...state.ApplicationReducer });
 const mapDispatchToProps = dispatch => bindActionCreators({ uninstallApplication, editDomainName }, dispatch);

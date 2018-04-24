@@ -18,6 +18,10 @@ describe('Login Page', () => {
         cy.get('.sub.header').contains('Liste des applications');
     });
 
+    it.skip('Bad password', () => {
+        // TODO
+    });
+
     it('Logout', () => {
         const token = jwt.sign({ email: 'contact@ethibox.fr' }, 'mysecret', { expiresIn: '1d' });
         cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
@@ -25,7 +29,18 @@ describe('Login Page', () => {
         cy.get('.sub.header').contains('Host your websites effortlessly');
     });
 
-    it.skip('Auto disconnect', () => {
-        // @TODO
+    it('Bad token', () => {
+        const token = jwt.sign({ email: 'contact@ethibox.fr' }, 'badsecret', { expiresIn: '1d' });
+        cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
+        cy.reload();
+        cy.get('.sub.header').contains('Host your websites effortlessly');
+    });
+
+    it('Token expired', () => {
+        const token = jwt.sign({ email: 'contact@ethibox.fr' }, 'mysecret', { expiresIn: 2 });
+        cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
+        cy.wait(3000);
+        cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
+        cy.get('.sub.header').contains('Host your websites effortlessly');
     });
 });

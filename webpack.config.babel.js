@@ -77,11 +77,7 @@ const config = {
         ],
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            filename: 'index.html',
-            template: `${__dirname}/src/client/index.html`,
-            hash: true,
-        }),
+        new HtmlWebpackPlugin({ filename: 'index.html', template: `${__dirname}/src/client/index.html`, hash: true }),
         new webpack.DefinePlugin({
             'process.env.NODE_PORT': JSON.stringify(port),
             'process.env.NODE_ENV': JSON.stringify(env),

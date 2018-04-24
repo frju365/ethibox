@@ -7,6 +7,10 @@ import { closeModal } from './ModalActions';
 const ModalComponent = (props) => {
     const { hasErrored, title, errorMessage, successMessage, isOpen } = props;
 
+    if (errorMessage === 'Not authorized') {
+        localStorage.clear();
+    }
+
     return (
         <Modal open={isOpen} size="large" key="modal" basic>
             { hasErrored ? <Header icon="warning sign" content={title || 'Error'} /> : <Header icon="checkmark" content={title || 'Success'} /> }

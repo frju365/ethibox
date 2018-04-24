@@ -7,12 +7,10 @@ export default (state = { applications: [] }, action) => {
         case 'INSTALL_APPLICATION_SUCCESS': {
             const newApplication = action.application;
             newApplication.state = 'loading';
-            localStorage.setItem('lastActionDate', Date.now());
             return { ...state, applications: [...state.applications, newApplication] };
         }
 
         case 'UNINSTALL_APPLICATION_SUCCESS': {
-            localStorage.setItem('lastActionDate', Date.now());
             if (action.force) {
                 return { ...state, applications: state.applications.filter(app => app.releaseName !== action.releaseName) };
             }

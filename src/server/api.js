@@ -4,8 +4,7 @@ import jwt from 'jsonwebtoken';
 import jwtDecode from 'jwt-decode';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcrypt';
-import { listApplications, installApplication, uninstallApplication, listCharts, editApplication } from './k8sClient';
-import { User } from './models';
+import { Chart, User, Application } from './models';
 import { isAuthenticate, secret, externalIp } from './utils';
 
 const api = express();
@@ -45,12 +44,18 @@ api.post('/login', async (req, res) => {
     return res.status(401).send({ success: false, message: 'Bad credentials' });
 });
 
-api.use((req, res, next) => {
+api.use(async (req, res, next) => {
     req.jwt_auth = false;
     const token = req.body.token || req.query.token || req.headers['x-access-token'];
+    const { email } = jwtDecode(token);
 
     if (isAuthenticate(token)) {
         req.jwt_auth = true;
+        req.body.user = await User.findOne({ where: { email } }) || false;
+    }
+
+    if (!req.body.user) {
+        req.jwt_auth = false;
     }
 
     next();
@@ -60,7 +65,11 @@ api.get('/applications', async (req, res) => {
     if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
 
     try {
-        const apps = await listApplications();
+        const apps = await Application.findAll({
+            attributes: { exclude: ['id', 'chartId', 'userId', 'createAt', 'updatedAt'] },
+            include: [{ model: Chart, attributes: [] }, { model: User, attributes: [], where: { email: req.body.user.email } }],
+            raw: true,
+        });
         return res.json({ success: true, message: 'Application listing', apps });
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
@@ -70,27 +79,28 @@ api.get('/applications', async (req, res) => {
 api.post('/applications', async (req, res) => {
     if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
 
-    const token = req.body.token || req.query.token || req.headers['x-access-token'];
-    const { email } = jwtDecode(token);
-
     try {
-        const { name, releaseName } = req.body;
-        await installApplication(name, email, releaseName);
+        const { name, releaseName, user } = req.body;
+        const chart = await Chart.findOne({ where: { name } });
+
+        Application.create({ releaseName, state: 'loading', user, chart }).then((application) => {
+            user.addApplication(application);
+            chart.addApplication(application);
+        });
+
         return res.json({ success: true, message: 'Application installed' });
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
     }
 });
 
-api.delete('/applications/:releaseName', (req, res) => {
+api.delete('/applications/:releaseName', async (req, res) => {
     if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
 
     try {
-        const token = req.body.token || req.query.token || req.headers['x-access-token'];
         const { releaseName } = req.params;
-        const { email } = jwtDecode(token);
+        Application.destroy({ where: { releaseName, userId: req.body.user.id } });
 
-        uninstallApplication(releaseName, email);
         return res.json({ success: true, message: 'Application uninstalled' });
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
@@ -101,10 +111,7 @@ api.put('/applications/:releaseName', async (req, res) => {
     if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
 
     const { releaseName } = req.params;
-    const { domainName, name } = req.body;
-
-    const token = req.body.token || req.query.token || req.headers['x-access-token'];
-    const { email } = jwtDecode(token);
+    const { domainName } = req.body;
 
     try {
         if (domainName) {
@@ -123,19 +130,8 @@ api.put('/applications/:releaseName', async (req, res) => {
             }
         }
 
-        await editApplication(name, email, releaseName, domainName);
+        Application.update({ releaseName, domainName }, { where: { releaseName } });
         return res.json({ success: true, message: 'Application edited' });
-    } catch ({ message }) {
-        return res.status(500).send({ success: false, message });
-    }
-});
-
-api.get('/charts', (req, res) => {
-    if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
-
-    try {
-        const charts = listCharts();
-        return res.json(charts);
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
     }

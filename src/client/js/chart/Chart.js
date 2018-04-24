@@ -8,16 +8,11 @@ import { openModal } from '../modal/ModalActions';
 class Chart extends React.Component {
     state = { action: '', releaseName: '', error: false }
 
-    install(releaseName) {
-        const { name, category } = this.props;
-        this.props.installApplication({ name, category, releaseName });
-    }
-
-    isValidReleaseName = releaseName => releaseName.trim().match(/^[a-z]([-a-z0-9]*[a-z0-9])?$/);
+    isValidReleaseName = releaseName => releaseName.match(/^[a-z]([-a-z0-9]*[a-z0-9])?$/);
     isAlreadyExist = releaseName => this.props.applications.map(release => release.releaseName).includes(releaseName);
 
     enterReleaseName = (key) => {
-        const { releaseName } = this.state;
+        const releaseName = this.state.releaseName.trim();
 
         if (key === 'Enter') {
             if (this.isAlreadyExist(releaseName)) {
@@ -27,7 +22,7 @@ class Chart extends React.Component {
             }
 
             if (this.isValidReleaseName(releaseName)) {
-                this.install(releaseName.trim());
+                this.props.installApplication({ name: this.props.name, releaseName });
                 this.setState({ action: '', releaseName: '' });
             } else {
                 this.setState({ error: true });
