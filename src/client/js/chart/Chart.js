@@ -22,7 +22,7 @@ class Chart extends React.Component {
             }
 
             if (this.isValidReleaseName(releaseName)) {
-                this.props.installApplication({ name: this.props.name, releaseName });
+                this.props.installApplication({ name: this.props.name, releaseName, category: this.props.category });
                 this.setState({ action: '', releaseName: '' });
             } else {
                 this.setState({ error: true });

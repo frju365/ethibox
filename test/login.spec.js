@@ -32,7 +32,7 @@ describe('Login Page', () => {
     it('Bad token', () => {
         const token = jwt.sign({ email: 'contact@ethibox.fr' }, 'badsecret', { expiresIn: '1d' });
         cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
-        cy.reload();
+        cy.get('.actions > button.red').click({ force: true });
         cy.get('.sub.header').contains('Host your websites effortlessly');
     });
 

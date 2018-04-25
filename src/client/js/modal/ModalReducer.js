@@ -7,6 +7,10 @@ export default (state = initialState, action) => {
         }
 
         case 'CLOSE_MODAL': {
+            if (action.params.redirect) {
+                localStorage.clear();
+                window.location.replace('/');
+            }
             return initialState;
         }
 

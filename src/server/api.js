@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import jwtDecode from 'jwt-decode';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcrypt';
-import { Chart, User, Application } from './models';
+import { sequelize, Chart, User, Application } from './models';
 import { isAuthenticate, secret, externalIp } from './utils';
 
 const api = express();
@@ -65,11 +65,11 @@ api.get('/applications', async (req, res) => {
     if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
 
     try {
-        const apps = await Application.findAll({
-            attributes: { exclude: ['id', 'chartId', 'userId', 'createAt', 'updatedAt'] },
-            include: [{ model: Chart, attributes: [] }, { model: User, attributes: [], where: { email: req.body.user.email } }],
-            raw: true,
-        });
+        const apps = await sequelize.query(`SELECT releaseName, domainName, state, port, error, name, category
+           FROM applications
+           LEFT JOIN charts AS chart ON applications.chartId = chart.id
+           INNER JOIN users AS user ON applications.userId = user.id AND user.email = ?`, { replacements: [req.body.user.email], type: sequelize.QueryTypes.SELECT });
+
         return res.json({ success: true, message: 'Application listing', apps });
     } catch ({ message }) {
         return res.status(500).send({ success: false, message });
