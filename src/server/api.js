@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import jwtDecode from 'jwt-decode';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcrypt';
+import graphqlHTTP from 'express-graphql';
+import { buildSchema } from 'graphql';
 import { sequelize, Chart, User, Application } from './models';
 import { isAuthenticate, secret, externalIp } from './utils';
 
@@ -47,23 +49,21 @@ api.post('/login', async (req, res) => {
 api.use(async (req, res, next) => {
     req.jwt_auth = false;
     const token = req.body.token || req.query.token || req.headers['x-access-token'];
-    const { email } = jwtDecode(token);
 
-    if (isAuthenticate(token)) {
+    if (token && isAuthenticate(token)) {
         req.jwt_auth = true;
+        const { email } = jwtDecode(token);
         req.body.user = await User.findOne({ where: { email } }) || false;
     }
 
-    if (!req.body.user) {
-        req.jwt_auth = false;
+    if (!token || !req.body.user) {
+        return res.status(401).send({ success: false, message: 'Not authorized' });
     }
 
-    next();
+    return next();
 });
 
 api.get('/applications', async (req, res) => {
-    if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
-
     try {
         const apps = await sequelize.query(`SELECT releaseName, domainName, state, port, error, name, category
            FROM applications
@@ -77,8 +77,6 @@ api.get('/applications', async (req, res) => {
 });
 
 api.post('/applications', async (req, res) => {
-    if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
-
     try {
         const { name, releaseName, user } = req.body;
         const chart = await Chart.findOne({ where: { name } });
@@ -95,8 +93,6 @@ api.post('/applications', async (req, res) => {
 });
 
 api.delete('/applications/:releaseName', async (req, res) => {
-    if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
-
     try {
         const { releaseName } = req.params;
         Application.destroy({ where: { releaseName, userId: req.body.user.id } });
@@ -108,8 +104,6 @@ api.delete('/applications/:releaseName', async (req, res) => {
 });
 
 api.put('/applications/:releaseName', async (req, res) => {
-    if (!req.jwt_auth) return res.status(401).send({ success: false, message: 'Not authorized' });
-
     const { releaseName } = req.params;
     const { domainName } = req.body;
 
@@ -136,5 +130,38 @@ api.put('/applications/:releaseName', async (req, res) => {
         return res.status(500).send({ success: false, message });
     }
 });
+
+const schema = buildSchema(`
+  type Query {
+    applications(email: String!): [Application]
+  }
+
+  type Application {
+    name: String
+    category: String
+    releaseName: String
+    domainName: String
+    state: String
+    port: Int
+    error: String
+  }
+`);
+
+const rootValue = {
+    applications: async ({ email }) => {
+        const apps = await sequelize.query(`SELECT releaseName, domainName, state, port, error, name, category
+           FROM applications
+           LEFT JOIN charts AS chart ON applications.chartId = chart.id
+           INNER JOIN users AS user ON applications.userId = user.id AND user.email = ?`, { replacements: [email], type: sequelize.QueryTypes.SELECT });
+        return apps;
+    },
+};
+
+api.use('/graphql', (req, res) => graphqlHTTP({
+    schema,
+    rootValue,
+    context: { req, res },
+    graphiql: (process.env.NODE_ENV !== 'production'),
+})(req, res));
 
 export default api;

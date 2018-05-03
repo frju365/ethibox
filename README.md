@@ -12,27 +12,10 @@
 </p>
 
 <div align="center">
-  <h4>
-    <a href="https://demo.ethibox.fr">Demo</a>
-    <span> | </span>
-    <a href="https://blog.ston3o.me/decentralisons-internet-avec-ethibox/">Blog Article</a>
-    <span> | </span>
-    <a href=".github/CONTRIBUTING.md">Contributing</a>
-    <span> | </span>
-    <a href="https://www.reddit.com/r/ethibox/">Reddit</a>
-  </h4>
-</div>
-
-<div align="center">
   <sub>Made with <span style="color:red">❤︎</span> by <a href="https://ston3o.me">ston3o</a> for the Open-Source Community
 </div>
 
 ---
-
-## Why ?
-
-- Because it's not easy to self-hosted
-- Because free software ❤︎
 
 ## TL;DR
 
@@ -47,6 +30,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Requirements
 
 * [Minikube](https://github.com/kubernetes/minikube) - Run Kubernetes locally
+* [Telepresence](https://github.com/datawire/telepresence/) - Local development against a remote Kubernetes.
 * [Helm](https://github.com/kubernetes/helm/) -  The Kubernetes Package Manager
 * [Node.js](https://github.com/nodejs/node) - Node.js
 
@@ -62,24 +46,24 @@ npm start
 ## How it works
 
 ```
-         ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-         │                            ┌──────────┐                     │
-         │                        ┌──▶│ Mastodon │◀──┐                 │
-         │                        │   └──────────┘   │                 │
-         │                        │                  │                 │
-      80,443   ┌───────────────┐  │   ┌──────────┐   │  ┌────────────┐ │
-User ─────────▶│ reverse-proxy │─────▶│ Ghost    │◀─────│ Kubernetes │ │
-         │     └───────────────┘  │   └──────────┘   │  └────────────┘ │
-         │          │             │                  │         ▲       │
-         │          │             │   ┌──────────┐   │         │       │
-         │          │             └──▶│ ∞        │◀──┘         │       │
-         │          │                 └──────────┘             │       │
-         │          │                                          │       │
-         │          │                 ┌──────────┐    charts   │       │
-         │          └────────────────▶│ Ethibox  │─────────────┘       │
-         │                            └──────────┘                     │
-         │                                           Bare metal server │
-         └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+         ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+         │                            ┌──────────┐                       │
+         │                        ┌──▶│ Mastodon │◀──┐                   │
+         │                        │   └──────────┘   │                   │
+         │                        │                  │                   │
+      80,443   ┌───────────────┐  │   ┌──────────┐   │  ┌──────────────┐ │
+User ─────────▶│ reverse-proxy │─────▶│ Ghost    │◀─────│ Orchestrator │ │
+         │     └───────────────┘  │   └──────────┘   │  └──────────────┘ │
+         │          │             │                  │         ▲         │
+         │          │             │   ┌──────────┐   │         │         │
+         │          │             └──▶│ ∞        │◀──┘         │         │
+         │          │                 └──────────┘             │         │
+         │          │                                          │         │
+         │          │                 ┌──────────┐   packages  │         │
+         │          └────────────────▶│ Ethibox  │─────────────┘         │
+         │                            └──────────┘                       │
+         │                                             Bare metal server │
+         └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
 ## Deployment

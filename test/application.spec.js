@@ -69,7 +69,19 @@ describe('Applications Page', () => {
         cy.get('.cards .card:first-child input').type('domain.fr{enter}');
     });
 
-    it('Auto refresh', () => [
-        // TODO
-    ]);
+    it('Auto refresh', () => {
+        cy.server();
+        cy.route('POST', '**/api/applications', { success: true, message: 'Application installed' });
+        cy.route('GET', '**/api/applications', { success: true, apps: [] });
+        cy.route('POST', '**/api/graphql', { data: { applications: [{ name: 'etherpad', releaseName: 'test', domainName: null, category: 'Editor', state: 'running', port: 30000 }] } });
+
+        const token = jwt.sign({ email: 'contact@ethibox.fr' }, 'mysecret', { expiresIn: '1d' });
+        cy.visit('/', { onBeforeLoad: (win) => { win.fetch = null; win.localStorage.setItem('token', token); } });
+        cy.get('.cards .card:first-child .buttons').click();
+        cy.get('.cards .card:first-child input').type('test{enter}');
+        cy.get('.cards .card:first-child .header').contains('test');
+        cy.get('.cards .card:first-child .loader').contains('Loading...');
+        cy.wait(5000);
+        cy.get('.cards .card:first-child .meta').contains('http://192.168.99.100:30000');
+    });
 });
